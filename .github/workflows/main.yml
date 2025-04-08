@@ -1,18 +1,26 @@
-name: CI
+name: Deploy react app to GitHub Pages
 
-on: [push]
-
+on:
+  push:
+    branches:
+      - main
 jobs:
   build:
 
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v1
-    - name: Run a one-line script
-      run: echo Hello, world!
-    - name: Run a multi-line script
-      run: |
-        echo Add other actions to build,
-        echo test, and deploy your project.
+    - name: Checkout
+      uses: actions/checkout@v1
 
+    - name: Build
+      run: |
+        npm install
+        npm run-script build
+    - name: Build and Deploy
+      uses: JamesIves/github-pages-deploy-action@releases/v3
+      with:
+        ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+        BASE_BRANCH: master
+        BRANCH: gh-pages
+        FOLDER: build
