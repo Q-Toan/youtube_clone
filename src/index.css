@@ -1,21 +1,25 @@
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-size: sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Roboto', sans-serif;
+}
+
+body {
+  background: #f9f9f9; /* Light grey background */
+  color: #212121; /* Dark text color */
 }
 
 a {
-    text-decoration: none;
-    color: #5a5a5a;
+  text-decoration: none;
+  color: #5a5a5a; /* Default link color */
 }
 
 img {
-    cursor: pointer;
+  cursor: pointer;
 }
 
 .flex-div {
-    display: flex;
-    align-items: center;
-    
+  display: flex;
+  align-items: center;
 }

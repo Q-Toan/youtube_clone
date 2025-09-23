@@ -1,89 +1,55 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import "./Recommended.css";
-import thumbnail1 from "../../assets/thumbnail1.png";
-import thumbnail2 from "../../assets/thumbnail2.png";
-import thumbnail3 from "../../assets/thumbnail3.png";
-import thumbnail4 from "../../assets/thumbnail4.png";
-import thumbnail5 from "../../assets/thumbnail5.png";
-import thumbnail6 from "../../assets/thumbnail6.png";
-import thumbnail7 from "../../assets/thumbnail7.png";
-import thumbnail8 from "../../assets/thumbnail8.png";
+import { API_Key, value_converter } from "../../data";
+import { Link } from "react-router-dom";
+import ShowMoreButton from "../ShowMoreButton/ShowMoreButton";
 
 const Recommended = ({categoryId}) => {
 
     const [apiData, setApiData] = useState([]);
+    const [visibleVideos, setVisibleVideos] = useState(5);
+
     const fetchData = async () => {
-        const relatedVideo_url =``
+    try {
+        const relatedVideo_url = `https://youtube.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails%2Cstatistics&chart=mostPopular&maxResults=40&regionCode=US&videoCategoryId=${categoryId}&key=${API_Key}`;
+        const response = await fetch(relatedVideo_url);
+        if (!response.ok) {
+            throw new Error("Network response was not ok");
+        }
+        const data = await response.json();
+        if (data.items && Array.isArray(data.items)) {
+            setApiData(data.items);
+        } else {
+            setApiData([]); 
+        }
+    } catch (error) {
+        console.error("Failed to fetch data:", error);
     }
+}
+    useEffect(()=> {
+        fetchData();
+    },[categoryId])
 
     return (
         <div className="recommended">
-            <div className="side-video-list">
-                <img src={thumbnail1} alt="" />
-                <div className="vid-info">
-                    <h4>Best channel that help you to be a web developer</h4>
-                    <p>GreatStack</p>
-                    <p>199k Views</p>
-                </div>
-            </div>
-            <div className="side-video-list">
-                <img src={thumbnail2} alt="" />
-                <div className="vid-info">
-                    <h4>Best channel that help you to be a web developer</h4>
-                    <p>GreatStack</p>
-                    <p>199k Views</p>
-                </div>
-            </div>
-            <div className="side-video-list">
-                <img src={thumbnail3} alt="" />
-                <div className="vid-info">
-                    <h4>Best channel that help you to be a web developer</h4>
-                    <p>GreatStack</p>
-                    <p>199k Views</p>
-                </div>
-            </div>
-            <div className="side-video-list">
-                <img src={thumbnail4} alt="" />
-                <div className="vid-info">
-                    <h4>Best channel that help you to be a web developer</h4>
-                    <p>GreatStack</p>
-                    <p>199k Views</p>
-                </div>
-            </div>
-            <div className="side-video-list">
-                <img src={thumbnail5} alt="" />
-                <div className="vid-info">
-                    <h4>Best channel that help you to be a web developer</h4>
-                    <p>GreatStack</p>
-                    <p>199k Views</p>
-                </div>
-            </div>
-            <div className="side-video-list">
-                <img src={thumbnail6} alt="" />
-                <div className="vid-info">
-                    <h4>Best channel that help you to be a web developer</h4>
-                    <p>GreatStack</p>
-                    <p>199k Views</p>
-                </div>
-            </div>
-            <div className="side-video-list">
-                <img src={thumbnail7} alt="" />
-                <div className="vid-info">
-                    <h4>Best channel that help you to be a web developer</h4>
-                    <p>GreatStack</p>
-                    <p>199k Views</p>
-                </div>
-            </div>
-            <div className="side-video-list">
-                <img src={thumbnail8} alt="" />
-                <div className="vid-info">
-                    <h4>Best channel that help you to be a web developer</h4>
-                    <p>GreatStack</p>
-                    <p>199k Views</p>
-                </div>
-            </div>
+            {apiData.slice(0, visibleVideos).map((item,index) => {
+                return (
+                    <Link to={`/video/${item.snippet.categoryId}/${item.id}`} key={index} className="side-video-list">
+                        <img src={item.snippet.thumbnails.medium.url} alt="" />
+                        <div className="vid-info">
+                            <h4>{item.snippet.title}</h4>
+                            <p>{item.snippet.channelTitle}</p>
+                            <p>{value_converter(item.statistics.viewCount)} Views</p>
+                        </div>
+                    </Link>
+                );
+            })}
+            {apiData.length > visibleVideos && (
+                <ShowMoreButton onClick={() => setVisibleVideos(prev => prev + 5)}>
+                    Show more
+                </ShowMoreButton>
+            )}
         </div>
     );
 }
-
 export default Recommended;

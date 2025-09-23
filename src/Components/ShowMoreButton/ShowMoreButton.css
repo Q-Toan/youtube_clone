@@ -1,0 +1,9 @@
+.show-more-btn {
+    background: none;
+    border: none;
+    color: #5a5a5a;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 5px 0;
+    margin-top: 5px;
+}

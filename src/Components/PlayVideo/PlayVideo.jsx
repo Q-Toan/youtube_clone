@@ -1,54 +1,51 @@
-import React from 'react';
 import './PlayVideo.css';
 import like from '../../assets/like.png';
 import dislike from '../../assets/dislike.png';
 import share from '../../assets/share.png';
 import save from '../../assets/save.png';
-import jack from '../../assets/jack.png';
-import user_profile from '../../assets/user_profile.jpg';
 import {API_Key, value_converter} from '../../data'
 import { useEffect, useState } from 'react';
 import moment from 'moment';
+import { useParams } from 'react-router-dom';
+import ShowMoreButton from '../ShowMoreButton/ShowMoreButton';
 
-const PlayVideo = ({videoId}) => {
+const PlayVideo = () => {
+
+    const{videoId} = useParams();
 
     const [apiData, setApiData] = useState(null);
     const [channelData, setChannelData] = useState(null);
     const [commentData, setCommentData] = useState([]);
+    const [showFullDescription, setShowFullDescription] = useState(false);
+    const [visibleComments, setVisibleComments] = useState(5);
 
     const fetchVideoData = async () => {
-        // fetch videos data
         const videoDetails = `https://youtube.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails%2Cstatistics&id=${videoId}&key=${API_Key}`;
         await fetch(videoDetails).then(res => res.json()).then(data => setApiData(data.items[0]));
     }
 
     const fetchOtherData = async () => {
-        // fetch channel data
         const channelDetails = `https://youtube.googleapis.com/youtube/v3/channels?part=snippet%2CcontentDetails%2Cstatistics&id=${apiData.snippet.channelId}&key=${API_Key}`;
         await fetch(channelDetails).then(res => res.json()).then(data => setChannelData(data.items[0]));
         
-        const commet_url =`https://youtube.googleapis.com/youtube/v3/commentThreads?part=snippet%2Creplies&videoId=${videoId}&key=${API_Key}`; {
+        const commet_url =`https://youtube.googleapis.com/youtube/v3/commentThreads?part=snippet%2Creplies&maxResults=50&videoId=${videoId}&key=${API_Key}`; {
             await fetch(commet_url).then(res => res.json()).then(data => setCommentData(data.items));
         }
     }
 
-    
-
     useEffect(() => {
         fetchVideoData();
-    }, []);
+    }, [videoId]);
 
     useEffect(() => {
         if (apiData) {
             fetchOtherData();
         }
     }, [apiData]);
-    console.log(channelData)
 
     return (
         <div className='play-video'>
-            {/* <video src={video1} controls autoPlay muted></video> */}
-            <iframe src={`https://www.youtube.com/embed/${videoId}?autoplay=1`} referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+            <iframe src={`https://www.youtube.com/embed/${videoId}?autoplay=1`} referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
             <h3>{apiData?apiData.snippet.title:"Title here"}</h3>
             <div className="play-video-info">
                 <p>{value_converter(apiData?apiData.statistics.viewCount:"16k")} &bull; {moment(apiData?apiData.snippet.publishedAt:"waiting!").fromNow()}</p>
@@ -69,10 +66,25 @@ const PlayVideo = ({videoId}) => {
                 <button>Subscribe</button>
             </div>
             <div className="vid-description">
-                <p>{apiData?apiData.snippet.description.slice(0, 250):""}</p>
+                {apiData && (
+                    <>
+                        <p>
+                            {showFullDescription 
+                                ? apiData.snippet.description 
+                                : `${apiData.snippet.description.slice(0, 250)}`
+                            }
+                            {apiData.snippet.description.length > 250 && !showFullDescription && '...'}
+                        </p>
+                        {apiData.snippet.description.length > 250 && (
+                            <ShowMoreButton onClick={() => setShowFullDescription(!showFullDescription)}>
+                                {showFullDescription ? 'Show less' : 'Show more'}
+                            </ShowMoreButton>
+                        )}
+                    </>
+                )}
                 <hr />
                 <h4>{value_converter(apiData?apiData.statistics.commentCount:"ko")} Comments</h4>
-                {commentData.map((item, index) => {
+                {commentData.slice(0, visibleComments).map((item, index) => {
                     return (
                         <div key={index} className="comment">
                             <img src={item.snippet.topLevelComment.snippet.authorProfileImageUrl} alt="" />
@@ -88,6 +100,11 @@ const PlayVideo = ({videoId}) => {
                         </div>
                     )
                 })}
+                {commentData.length > visibleComments && (
+                    <ShowMoreButton onClick={() => setVisibleComments(prev => prev + 10)}>
+                        Show more comments
+                    </ShowMoreButton>
+                )}
             </div>
         </div>
     )

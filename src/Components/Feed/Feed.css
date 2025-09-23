@@ -6,9 +6,19 @@
     margin-top: 15px;
 }
 
+.card {
+    display: flex;
+    flex-direction: column;
+}
+
 .card img {
     width: 100%;
-    border-radius: 5px;
+    border-radius: 8px;
+    transition: border-radius 0.3s;
+}
+
+.card:hover img {
+    border-radius: 0;
 }
 
 .card h2 {
@@ -27,4 +37,5 @@
 
 .card p {
     font-size: 14px;
+    color: #555;
 }

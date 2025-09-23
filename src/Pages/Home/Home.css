@@ -1,12 +1,18 @@
 .container {
-    background: #f9f9f9;
-    padding-left: 17%;
-    padding-right: 2px;
+    padding-left: 17%; /* 15% sidebar width + 2% padding */
+    padding-right: 2%;
     padding-top: 20px;
     padding-bottom: 20px;
+    transition: padding-left 0.3s;
 }
 
 .large-container {
-    padding-left: 7%;
-    
+    padding-left: 7%; /* 5% small-sidebar width + 2% padding */
+}
+
+@media (max-width: 900px) {
+    .container, .large-container {
+        padding-left: 5%;
+        padding-right: 5%;
+    }
 }
