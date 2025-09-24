@@ -17,6 +17,10 @@ nav {
     width: 130px;
 }
 
+.nav-middle{
+    position: relative;
+}
+
 .nav-middle .search-box {
     display: flex;
     align-items: center;

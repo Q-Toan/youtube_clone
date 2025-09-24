@@ -6,36 +6,23 @@ import save from '../../assets/save.png';
 import {API_Key, value_converter} from '../../data'
 import { useEffect, useState } from 'react';
 import moment from 'moment';
-import { useParams } from 'react-router-dom';
 import ShowMoreButton from '../ShowMoreButton/ShowMoreButton';
 
-const PlayVideo = () => {
+const PlayVideo = ({apiData}) => {
 
-    const{videoId} = useParams();
-
-    const [apiData, setApiData] = useState(null);
     const [channelData, setChannelData] = useState(null);
     const [commentData, setCommentData] = useState([]);
     const [showFullDescription, setShowFullDescription] = useState(false);
     const [visibleComments, setVisibleComments] = useState(5);
 
-    const fetchVideoData = async () => {
-        const videoDetails = `https://youtube.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails%2Cstatistics&id=${videoId}&key=${API_Key}`;
-        await fetch(videoDetails).then(res => res.json()).then(data => setApiData(data.items[0]));
-    }
-
     const fetchOtherData = async () => {
         const channelDetails = `https://youtube.googleapis.com/youtube/v3/channels?part=snippet%2CcontentDetails%2Cstatistics&id=${apiData.snippet.channelId}&key=${API_Key}`;
         await fetch(channelDetails).then(res => res.json()).then(data => setChannelData(data.items[0]));
         
-        const commet_url =`https://youtube.googleapis.com/youtube/v3/commentThreads?part=snippet%2Creplies&maxResults=50&videoId=${videoId}&key=${API_Key}`; {
+        const commet_url =`https://youtube.googleapis.com/youtube/v3/commentThreads?part=snippet%2Creplies&maxResults=50&videoId=${apiData.id}&key=${API_Key}`; {
             await fetch(commet_url).then(res => res.json()).then(data => setCommentData(data.items));
         }
     }
-
-    useEffect(() => {
-        fetchVideoData();
-    }, [videoId]);
 
     useEffect(() => {
         if (apiData) {
@@ -45,7 +32,7 @@ const PlayVideo = () => {
 
     return (
         <div className='play-video'>
-            <iframe src={`https://www.youtube.com/embed/${videoId}?autoplay=1`} referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
+            <iframe src={`https://www.youtube.com/embed/${apiData?.id}?autoplay=1`} referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
             <h3>{apiData?apiData.snippet.title:"Title here"}</h3>
             <div className="play-video-info">
                 <p>{value_converter(apiData?apiData.statistics.viewCount:"16k")} &bull; {moment(apiData?apiData.snippet.publishedAt:"waiting!").fromNow()}</p>

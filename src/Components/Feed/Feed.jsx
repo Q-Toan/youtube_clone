@@ -4,32 +4,38 @@ import {API_Key, value_converter} from '../../data';
 import { useEffect, useState } from 'react';
 import moment from 'moment';
 
-const Feed = ({category, searchQuery}) => {
+const Feed = ({category}) => {
 
     const [data, setData] = useState([])
 
     const fetchData = async () => {
-        let url = `https://youtube.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails%2Cstatistics&chart=mostPopular&maxResults=50&regionCode=US&videoCategoryId=${category}&key=${API_Key}`;
-
-        if (searchQuery) {
-            url = `https://youtube.googleapis.com/youtube/v3/search?part=snippet&q=${searchQuery}&maxResults=50&type=video&key=${API_Key}`;
-        }
+        const url = `https://youtube.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails%2Cstatistics&chart=mostPopular&maxResults=50&regionCode=US&videoCategoryId=${category}&key=${API_Key}`;
         
-        await fetch(url)
-            .then(response => response.json())
-            .then(data => setData(data.items))
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error("Network response was not ok");
+            }
+            const data = await response.json();
+            if (data.items && Array.isArray(data.items)) {
+                setData(data.items);
+            } else {
+                setData([]); 
+            }
+        } catch (error) {
+            console.error("Failed to fetch data:", error);
+            setData([]);
+        }
     }
 
     useEffect(() => {
         fetchData();
-    },[category, searchQuery])
+    },[category])
 
     return (
         <div className='feed'>
             {data.map((item, index)=> {
                 const videoId = item.id.videoId || item.id;
-                // The search result doesn't contain categoryId in the snippet, so we can't pass it in the URL.
-                // The recommended feed will just show most popular for now when coming from a search result.
                 const categoryId = item.snippet.categoryId || '0'; 
 
                 return (

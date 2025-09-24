@@ -4,31 +4,57 @@ import { API_Key, value_converter } from "../../data";
 import { Link } from "react-router-dom";
 import ShowMoreButton from "../ShowMoreButton/ShowMoreButton";
 
-const Recommended = ({categoryId}) => {
+const Recommended = ({categoryId, channelId}) => {
 
     const [apiData, setApiData] = useState([]);
     const [visibleVideos, setVisibleVideos] = useState(5);
 
     const fetchData = async () => {
-    try {
-        const relatedVideo_url = `https://youtube.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails%2Cstatistics&chart=mostPopular&maxResults=40&regionCode=US&videoCategoryId=${categoryId}&key=${API_Key}`;
-        const response = await fetch(relatedVideo_url);
-        if (!response.ok) {
-            throw new Error("Network response was not ok");
+        if (!categoryId && !channelId) {
+            return;
         }
-        const data = await response.json();
-        if (data.items && Array.isArray(data.items)) {
-            setApiData(data.items);
-        } else {
-            setApiData([]); 
+
+        try {
+            let categoryVideos = [];
+            if (categoryId) {
+                const relatedVideo_url = `https://youtube.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails%2Cstatistics&chart=mostPopular&maxResults=20&regionCode=US&videoCategoryId=${categoryId}&key=${API_Key}`;
+                const response = await fetch(relatedVideo_url);
+                const data = await response.json();
+                if (data.items) {
+                    categoryVideos = data.items;
+                }
+            }
+
+            let channelVideos = [];
+            if (channelId) {
+                const channelVideo_url = `https://youtube.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&maxResults=20&type=video&key=${API_Key}`;
+                const response = await fetch(channelVideo_url);
+                const data = await response.json();
+                if (data.items) {
+                    // The search endpoint returns a different structure, so we need to fetch video details
+                    const videoIds = data.items.map(item => item.id.videoId).join(',');
+                    const videoDetails_url = `https://youtube.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails%2Cstatistics&id=${videoIds}&key=${API_Key}`;
+                    const detailsResponse = await fetch(videoDetails_url);
+                    const detailsData = await detailsResponse.json();
+                    if (detailsData.items) {
+                        channelVideos = detailsData.items;
+                    }
+                }
+            }
+
+            const combinedVideos = [...categoryVideos, ...channelVideos];
+            const uniqueVideos = Array.from(new Map(combinedVideos.map(video => [video.id, video])).values());
+            const shuffledVideos = uniqueVideos.sort(() => Math.random() - 0.5);
+
+            setApiData(shuffledVideos);
+        } catch (error) {
+            console.error("Failed to fetch data:", error);
         }
-    } catch (error) {
-        console.error("Failed to fetch data:", error);
     }
-}
+
     useEffect(()=> {
         fetchData();
-    },[categoryId])
+    },[categoryId, channelId])
 
     return (
         <div className="recommended">
